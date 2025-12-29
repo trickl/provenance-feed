@@ -38,9 +38,9 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
             href={provenanceUrl}
             target="_blank"
             rel="noreferrer"
-            title="External provenance context (placeholder)"
+            title="View provenance"
           >
-            Provenance: context pending <span aria-hidden="true">↗</span>
+            View provenance <span aria-hidden="true">↗</span>
           </a>
         </div>
       </div>
