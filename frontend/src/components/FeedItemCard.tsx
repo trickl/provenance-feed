@@ -9,11 +9,18 @@ function formatTimestamp(iso: string): string {
 
 export function FeedItemCard({ item }: { item: FeedItem }) {
   const provenanceUrl = provenanceLinkFor(item.content_id)
+  const imageUrl = item.image_url ?? null
 
   return (
     <article className="card">
-      <div className="row">
-        <div>
+      <div className="item">
+        {imageUrl ? (
+          <div className="thumbWrap" aria-hidden="true">
+            <img className="thumb" src={imageUrl} alt="" loading="lazy" />
+          </div>
+        ) : null}
+
+        <div className="main">
           <h2 className="title">{item.title}</h2>
           <div className="meta">
             <span>

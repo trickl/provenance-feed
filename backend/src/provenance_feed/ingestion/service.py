@@ -26,12 +26,25 @@ def normalise_record(raw: dict) -> FeedItem:
     content_id = make_content_id(source=raw["source"], source_item_id=raw["source_item_id"])
     published_at = datetime.fromisoformat(raw["published_at"])
     published_at = FeedItem.ensure_utc(published_at)
+
+    image_last_checked = raw.get("image_last_checked")
+    if image_last_checked:
+        try:
+            image_last_checked_dt = FeedItem.ensure_utc(datetime.fromisoformat(image_last_checked))
+        except Exception:
+            image_last_checked_dt = None
+    else:
+        image_last_checked_dt = None
+
     return FeedItem(
         content_id=content_id,
         title=raw["title"].strip(),
         source_name=raw["source_name"].strip(),
         source_url=raw["source_url"].strip(),
         published_at=published_at,
+        image_url=(raw.get("image_url") or None),
+        image_source=(raw.get("image_source") or None),
+        image_last_checked=image_last_checked_dt,
     )
 
 

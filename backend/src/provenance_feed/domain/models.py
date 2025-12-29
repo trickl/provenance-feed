@@ -14,6 +14,11 @@ class FeedItem(BaseModel):
     source_url: str
     published_at: datetime
 
+    # Images are presentation assets, not truth signals.
+    image_url: str | None = None
+    image_source: str | None = None  # e.g. "rss", "page_meta", "none"
+    image_last_checked: datetime | None = None
+
     @staticmethod
     def ensure_utc(dt: datetime) -> datetime:
         if dt.tzinfo is None:

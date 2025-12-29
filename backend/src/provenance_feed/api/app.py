@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from provenance_feed.api.routes.feed import router as feed_router
 from provenance_feed.config import Settings, get_settings
-from provenance_feed.ingestion.mock_source import fetch_mock_items
+from provenance_feed.ingestion.real_sources import fetch_all_records
 from provenance_feed.ingestion.service import ingest_once
 from provenance_feed.persistence.sqlite import SQLiteFeedRepository
 
@@ -21,7 +21,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI):
         # Optional convenience for local development only.
         if settings.auto_ingest_on_startup:
-            ingest_once(repo=repo, records=fetch_mock_items())
+            # NOTE: This is intentionally simple (startup ingestion). No background
+            # orchestration is introduced in this phase.
+            ingest_once(repo=repo, records=fetch_all_records())
         yield
 
     app = FastAPI(title="provenance-feed", version="0.1.0", lifespan=lifespan)

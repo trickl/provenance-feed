@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Fixture Feed</title>
+    <item>
+      <title>Item with RSS media</title>
+      <link>https://example.com/story</link>
+      <pubDate>Mon, 01 Jan 2024 10:00:00 GMT</pubDate>
+      <media:content url="https://cdn.example.com/image.jpg" type="image/jpeg" />
+    </item>
+  </channel>
+</rss>

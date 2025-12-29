@@ -29,10 +29,22 @@ class SQLiteFeedRepository(FeedRepository):
                   source_name TEXT NOT NULL,
                   source_url TEXT NOT NULL,
                   published_at TEXT NOT NULL,
+                  image_url TEXT,
+                  image_source TEXT,
+                  image_last_checked TEXT,
                   created_at TEXT NOT NULL
                 );
                 """
             )
+
+            # Minimal schema migration for existing DBs (kept intentionally simple).
+            cols = {row["name"] for row in conn.execute("PRAGMA table_info(feed_items);")}
+            if "image_url" not in cols:
+                conn.execute("ALTER TABLE feed_items ADD COLUMN image_url TEXT;")
+            if "image_source" not in cols:
+                conn.execute("ALTER TABLE feed_items ADD COLUMN image_source TEXT;")
+            if "image_last_checked" not in cols:
+                conn.execute("ALTER TABLE feed_items ADD COLUMN image_last_checked TEXT;")
 
     def upsert(self, item: FeedItem) -> None:
         now = datetime.now(tz=UTC).isoformat()
@@ -40,14 +52,25 @@ class SQLiteFeedRepository(FeedRepository):
             conn.execute(
                 """
                 INSERT INTO feed_items (
-                  content_id, title, source_name, source_url, published_at, created_at
+                                    content_id,
+                                    title,
+                                    source_name,
+                                    source_url,
+                                    published_at,
+                                    image_url,
+                                    image_source,
+                                    image_last_checked,
+                                    created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(content_id) DO UPDATE SET
                   title=excluded.title,
                   source_name=excluded.source_name,
                   source_url=excluded.source_url,
-                  published_at=excluded.published_at;
+                                    published_at=excluded.published_at,
+                                    image_url=excluded.image_url,
+                                    image_source=excluded.image_source,
+                                    image_last_checked=excluded.image_last_checked;
                 """,
                 (
                     item.content_id,
@@ -55,6 +78,11 @@ class SQLiteFeedRepository(FeedRepository):
                     item.source_name,
                     item.source_url,
                     FeedItem.ensure_utc(item.published_at).isoformat(),
+                    item.image_url,
+                    item.image_source,
+                    FeedItem.ensure_utc(item.image_last_checked).isoformat()
+                    if item.image_last_checked
+                    else None,
                     now,
                 ),
             )
@@ -65,7 +93,15 @@ class SQLiteFeedRepository(FeedRepository):
         with self._connect() as conn:
             rows = conn.execute(
                 """
-                SELECT content_id, title, source_name, source_url, published_at
+                                SELECT
+                                    content_id,
+                                    title,
+                                    source_name,
+                                    source_url,
+                                    published_at,
+                                    image_url,
+                                    image_source,
+                                    image_last_checked
                 FROM feed_items
                 ORDER BY published_at DESC
                 LIMIT ?;
@@ -80,6 +116,13 @@ class SQLiteFeedRepository(FeedRepository):
                 source_name=r["source_name"],
                 source_url=r["source_url"],
                 published_at=datetime.fromisoformat(r["published_at"]),
+                image_url=r["image_url"],
+                image_source=r["image_source"],
+                image_last_checked=(
+                    datetime.fromisoformat(r["image_last_checked"])
+                    if r["image_last_checked"]
+                    else None
+                ),
             )
             for r in rows
         ]

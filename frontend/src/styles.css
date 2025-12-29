@@ -45,11 +45,29 @@ body {
   padding: 14px 14px 12px;
 }
 
-.row {
+.item {
   display: flex;
   align-items: start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.thumbWrap {
+  flex: 0 0 auto;
+}
+
+.thumb {
+  width: 96px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+
+.main {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .title {

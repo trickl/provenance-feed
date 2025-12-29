@@ -11,3 +11,7 @@ class FeedItemOut(BaseModel):
     source_name: str
     source_url: str
     published_at: datetime
+
+    image_url: str | None = None
+    image_source: str | None = None
+    image_last_checked: datetime | None = None

@@ -61,6 +61,39 @@ This value is intended to be used later when querying an external provenance sys
 
 Real-world feeds are often messy: if a source does not provide a stable `source_item_id`, the intended escape hatch (not implemented yet) is to derive one by hashing a **canonicalised source URL** (e.g., normalised scheme/host/path and a consistent query policy) and using that hash as the `source_item_id`.
 
+### Current ingestion sources (intentionally incomplete)
+
+This project intentionally ingests from a **small curated set** of sources (3–5 max). Coverage is deliberately incomplete; the goal is to validate the architecture under real data, not to ingest “everything”.
+
+Sources are intentionally **heterogeneous** (mainstream outlets, public media, a science/government publisher, plus some sources with thinner/indirect provenance such as think-tank posts, advocacy updates, and aggregation). Inclusion here is about epistemic stress-testing ingestion and presentation.
+
+**Inclusion ≠ endorsement.** The feed treats all sources identically and does not label sources as “good” or “bad”, and it does not implement trust logic.
+
+Currently ingested RSS sources:
+
+- BBC News (World) — stable, mainstream international reporting
+- NPR (News) — reputable public media, different editorial profile
+- The Guardian (World) — another major outlet with heterogeneous feed shape
+- NASA (Breaking News) — reputable non-outlet source (science/government) to increase heterogeneity
+
+Additional legitimate-but-thinner-provenance sources (still treated identically by the feed):
+
+- Brookings (Research/Commentary) — think-tank commentary and research posts
+- EFF (Updates) — advocacy/NGO updates
+- ReliefWeb (Updates) — aggregation across many upstream publishers
+
+### Content identifiers with real RSS feeds
+
+For the current RSS sources, `source_item_id` is derived from a **hash of a best-effort canonicalised URL**, so that:
+
+- duplicates caused by tracking query parameters collapse to one item
+- title updates overwrite the existing record (via upsert)
+
+Known limitations (documented on purpose):
+
+- TODO: URL canonicalisation is source- and site-specific; a general rule may still produce duplicates.
+- TODO: if publishers change canonical URLs over time, the derived ID changes and the item may appear as “new”.
+
 Backend endpoints:
 
 - `GET /healthz`
