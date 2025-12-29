@@ -13,6 +13,7 @@ export async function fetchFeed(limit = 50): Promise<FeedItem[]> {
 }
 
 export function provenanceLinkFor(contentId: string): string {
-  const base = import.meta.env.VITE_PROVENANCE_URL_BASE ?? 'https://provenance.example/item'
-  return `${base}/${encodeURIComponent(contentId)}`
+  const base = import.meta.env.VITE_PROVENANCE_GRAPH_BASE_URL ?? 'http://127.0.0.1:8010'
+  const trimmed = base.endsWith('/') ? base.slice(0, -1) : base
+  return `${trimmed}/explain/${encodeURIComponent(contentId)}`
 }

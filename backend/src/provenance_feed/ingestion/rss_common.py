@@ -21,9 +21,7 @@ class RSSSource:
     feed_url: str
 
 
-TRACKING_QUERY_PREFIXES = (
-    "utm_",
-)
+TRACKING_QUERY_PREFIXES = ("utm_",)
 
 TRACKING_QUERY_KEYS = {
     "fbclid",

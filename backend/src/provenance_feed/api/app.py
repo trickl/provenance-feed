@@ -10,6 +10,7 @@ from provenance_feed.config import Settings, get_settings
 from provenance_feed.ingestion.real_sources import fetch_all_records
 from provenance_feed.ingestion.service import ingest_once
 from provenance_feed.persistence.sqlite import SQLiteFeedRepository
+from provenance_feed.provenance_graph.observer import ProvenanceGraphObserver
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -17,19 +18,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     repo = SQLiteFeedRepository(database_path=settings.database_path)
     repo.init_schema()
 
+    observer = ProvenanceGraphObserver(
+        enabled=settings.provenance_graph_observe_enabled,
+        observe_url=settings.provenance_graph_observe_url,
+        api_key=settings.provenance_graph_write_api_key,
+        timeout_seconds=settings.provenance_graph_observe_timeout_seconds,
+        queue_size=settings.provenance_graph_observe_queue_size,
+    )
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         # Optional convenience for local development only.
         if settings.auto_ingest_on_startup:
             # NOTE: This is intentionally simple (startup ingestion). No background
             # orchestration is introduced in this phase.
-            ingest_once(repo=repo, records=fetch_all_records())
+            ingest_once(repo=repo, records=fetch_all_records(), observer=observer)
         yield
 
     app = FastAPI(title="provenance-feed", version="0.1.0", lifespan=lifespan)
 
     app.state.settings = settings
     app.state.repo = repo
+    app.state.provenance_graph_observer = observer
 
     origins = [o.strip() for o in settings.cors_allow_origins.split(",") if o.strip()]
     if origins:

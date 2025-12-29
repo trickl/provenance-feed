@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Protocol
 
 from provenance_feed.domain.identifiers import make_content_id
 from provenance_feed.domain.models import FeedItem
 from provenance_feed.persistence.repository import FeedRepository
+from provenance_feed.provenance_graph.observer import safe_observe
 
 """Ingestion services.
 
@@ -48,10 +50,22 @@ def normalise_record(raw: dict) -> FeedItem:
     )
 
 
-def ingest_once(*, repo: FeedRepository, records: list[dict]) -> int:
+class ContentObserver(Protocol):
+    def observe_content(self, *, item: FeedItem) -> None: ...
+
+
+def ingest_once(
+    *,
+    repo: FeedRepository,
+    records: list[dict],
+    observer: ContentObserver | None = None,
+) -> int:
     """Ingest and persist records. Returns number of items upserted."""
 
     items = [normalise_record(r) for r in records]
     for item in items:
         repo.upsert(item)
+        # Best-effort, non-blocking observational hook.
+        if observer is not None:
+            safe_observe(observer, item=item)
     return len(items)
