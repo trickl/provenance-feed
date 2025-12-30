@@ -1,5 +1,13 @@
+import { useEffect, useMemo, useState } from 'react'
+
 import type { FeedItem } from '../types'
-import { provenanceLinkFor } from '../api'
+import {
+  fetchSourceBadge,
+  provenanceLinkFor,
+  provenanceSourceLinkFor,
+  sourceKeyFromContentId,
+  type SourceBadge,
+} from '../api'
 
 function formatTimestamp(iso: string): string {
   const d = new Date(iso)
@@ -8,8 +16,59 @@ function formatTimestamp(iso: string): string {
 }
 
 export function FeedItemCard({ item }: { item: FeedItem }) {
-  const provenanceUrl = provenanceLinkFor(item.content_id)
+  const sourceKey = useMemo(() => sourceKeyFromContentId(item.content_id), [item.content_id])
+  const provenanceUrl = sourceKey ? provenanceSourceLinkFor(sourceKey) : provenanceLinkFor(item.content_id)
   const imageUrl = item.image_url ?? null
+
+  const [badge, setBadge] = useState<SourceBadge | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    if (!sourceKey) {
+      setBadge(null)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    fetchSourceBadge(sourceKey)
+      .then((b) => {
+        if (!cancelled) setBadge(b)
+      })
+      .catch(() => {
+        // Best-effort only: the feed remains usable even if provenance-graph is down.
+        if (!cancelled) setBadge(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [item.content_id, sourceKey])
+
+  const trustLabel = useMemo(() => {
+    if (!badge) return 'Trust: ?'
+    return badge.label
+  }, [badge])
+
+  const trustText = useMemo(() => {
+    if (!badge) return '?'
+    return badge.grade_pretty
+  }, [badge])
+
+  const badgeGradeClass = useMemo(() => {
+    const g = badge?.grade ?? 'UNKNOWN'
+    // Normalize to something CSS-friendly.
+    return `badge--${g.toLowerCase()}`
+  }, [badge])
+
+  const badgeGlyph = useMemo(() => {
+    const g = badge?.grade ?? 'UNKNOWN'
+    // Visual signal only; does not change semantics.
+    if (g === 'A_PLUS' || g === 'A') return '▲'
+    if (g === 'B') return '●'
+    if (g === 'C') return '◆'
+    if (g === 'D' || g === 'F') return '▼'
+    return '…'
+  }, [badge])
 
   return (
     <article className="card">
@@ -33,14 +92,25 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
           </div>
         </div>
 
-        <div className="badge" aria-label="provenance context badge">
+        <div
+          className={`badge ${badgeGradeClass}${badge?.provisional ? ' badge--provisional' : ''}`}
+          aria-label="source trust badge"
+        >
           <a
             href={provenanceUrl}
             target="_blank"
             rel="noreferrer"
-            title="View provenance"
+            title={trustLabel}
           >
-            View provenance <span aria-hidden="true">↗</span>
+            <span className="badgeGlyph" aria-hidden="true">{badgeGlyph}</span>
+            Trust: {trustText}
+            {badge?.provisional ? (
+              <>
+                <span className="badgeProvisional" aria-hidden="true"> ~</span>
+                <span className="muted"> (provisional)</span>
+              </>
+            ) : null}{' '}
+            <span aria-hidden="true">↗</span>
           </a>
         </div>
       </div>

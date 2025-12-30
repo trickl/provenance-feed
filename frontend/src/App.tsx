@@ -29,7 +29,7 @@ export function App() {
     <div className="page">
       <header className="header">
         <h1>provenance-feed</h1>
-        <p>Chronological feed with a reserved placeholder for provenance (no trust logic implemented).</p>
+        <p>Chronological feed with a best-effort source trust badge from provenance-graph.</p>
       </header>
 
       {error ? (
