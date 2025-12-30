@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client'
 
 import { App } from './App'
 import './styles.css'
+import { applyTheme, getSystemTheme, loadStoredTheme } from './theme'
+
+applyTheme(loadStoredTheme() ?? getSystemTheme())
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

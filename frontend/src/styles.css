@@ -1,14 +1,50 @@
 :root {
-  color-scheme: light;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
     "Apple Color Emoji", "Segoe UI Emoji";
   line-height: 1.5;
-  color: #111827;
-  background: #ffffff;
+
+  /* Theme tokens (light is default). */
+  color-scheme: light;
+  --bg: #ffffff;
+  --text: #111827;
+  --muted: #4b5563;
+  --card-bg: #ffffff;
+  --border: #e5e7eb;
+  --thumb-bg: #f3f4f6;
+  --badge-bg: #f3f4f6;
+  --badge-text: #111827;
+  --focus: rgba(59, 130, 246, 0.55);
+  --error-border: #fecaca;
+  --error-bg: #fef2f2;
+  --error-text: #991b1b;
+
+  /* Toggle colors (passed as CSS vars into the component). */
+  --toggle-bg-light: #eeeeee;
+  --toggle-bg-dark: #222222;
+  --toggle-border-light: lightgrey;
+  --toggle-border-dark: grey;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0b1220;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --card-bg: #0f172a;
+  --border: #1f2937;
+  --thumb-bg: #111827;
+  --badge-bg: #111827;
+  --badge-text: #e5e7eb;
+  --focus: rgba(96, 165, 250, 0.65);
+  --error-border: #7f1d1d;
+  --error-bg: #2a0f14;
+  --error-text: #fecaca;
 }
 
 body {
   margin: 0;
+  color: var(--text);
+  background: var(--bg);
 }
 
 .page {
@@ -21,6 +57,22 @@ body {
   margin-bottom: 24px;
 }
 
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.headerControls {
+  flex: 0 0 auto;
+  padding-top: 2px;
+}
+
 .header h1 {
   font-size: 20px;
   margin: 0;
@@ -30,7 +82,7 @@ body {
 
 .header p {
   margin: 8px 0 0;
-  color: #4b5563;
+  color: var(--muted);
   font-size: 14px;
 }
 
@@ -40,9 +92,10 @@ body {
 }
 
 .card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 14px 12px;
+  background: var(--card-bg);
 }
 
 .item {
@@ -61,8 +114,8 @@ body {
   height: 64px;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #f3f4f6;
+  border: 1px solid var(--border);
+  background: var(--thumb-bg);
 }
 
 .main {
@@ -82,7 +135,7 @@ body {
   gap: 10px;
   flex-wrap: wrap;
   font-size: 13px;
-  color: #4b5563;
+  color: var(--muted);
 }
 
 .meta a {
@@ -101,7 +154,7 @@ body {
 }
 
 .badge:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.55);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -117,9 +170,9 @@ body {
   height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #f3f4f6;
-  color: #111827;
+  border: 1px solid var(--border);
+  background: var(--badge-bg);
+  color: var(--badge-text);
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
@@ -127,8 +180,8 @@ body {
 
 .error {
   padding: 12px;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
+  border: 1px solid var(--error-border);
+  background: var(--error-bg);
   border-radius: 10px;
-  color: #991b1b;
+  color: var(--error-text);
 }
