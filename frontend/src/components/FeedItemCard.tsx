@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { FeedItem } from '../types'
 import {
-  fetchSourceBadge,
   provenanceLinkFor,
   provenanceSourceLinkFor,
   sourceKeyFromContentId,
-  type SourceBadge,
 } from '../api'
 
 function formatTimestamp(iso: string): string {
@@ -20,55 +18,21 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
   const provenanceUrl = sourceKey ? provenanceSourceLinkFor(sourceKey) : provenanceLinkFor(item.content_id)
   const imageUrl = item.image_url ?? null
 
-  const [badge, setBadge] = useState<SourceBadge | null>(null)
+  // In dev, aggressively bust caching for the SVG so grade changes are reflected immediately.
+  // In prod, we keep the URL stable and rely on server-side revalidation headers.
+  const badgeCacheKey = useMemo(
+    () => (import.meta.env.DEV ? String(Date.now()) : '1'),
+    [sourceKey],
+  )
 
-  useEffect(() => {
-    let cancelled = false
-    if (!sourceKey) {
-      setBadge(null)
-      return () => {
-        cancelled = true
-      }
-    }
+  const badgeSvgUrl = useMemo(() => {
+    const base = import.meta.env.VITE_PROVENANCE_GRAPH_BASE_URL ?? 'http://127.0.0.1:8010'
+    const trimmed = base.endsWith('/') ? base.slice(0, -1) : base
+    if (!sourceKey) return null
+    return `${trimmed}/api/v1/badge/source/${encodeURIComponent(sourceKey)}?format=svg&v=${encodeURIComponent(badgeCacheKey)}`
+  }, [badgeCacheKey, sourceKey])
 
-    fetchSourceBadge(sourceKey)
-      .then((b) => {
-        if (!cancelled) setBadge(b)
-      })
-      .catch(() => {
-        // Best-effort only: the feed remains usable even if provenance-graph is down.
-        if (!cancelled) setBadge(null)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [item.content_id, sourceKey])
-
-  const trustLabel = useMemo(() => {
-    if (!badge) return 'Trust: ?'
-    return badge.label
-  }, [badge])
-
-  const trustText = useMemo(() => {
-    if (!badge) return '?'
-    return badge.grade_pretty
-  }, [badge])
-
-  const badgeGradeClass = useMemo(() => {
-    const g = badge?.grade ?? 'UNKNOWN'
-    // Normalize to something CSS-friendly.
-    return `badge--${g.toLowerCase()}`
-  }, [badge])
-
-  const badgeGlyph = useMemo(() => {
-    const g = badge?.grade ?? 'UNKNOWN'
-    // Visual signal only; does not change semantics.
-    if (g === 'A_PLUS' || g === 'A') return '▲'
-    if (g === 'B') return '●'
-    if (g === 'C') return '◆'
-    if (g === 'D' || g === 'F') return '▼'
-    return '…'
-  }, [badge])
+  const [badgeImgOk, setBadgeImgOk] = useState(true)
 
   return (
     <article className="card">
@@ -92,27 +56,26 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
           </div>
         </div>
 
-        <div
-          className={`badge ${badgeGradeClass}${badge?.provisional ? ' badge--provisional' : ''}`}
-          aria-label="source trust badge"
+        <a
+          className="badge"
+          aria-label="View provenance"
+          href={provenanceUrl}
+          target="_blank"
+          rel="noreferrer"
+          title="View provenance"
         >
-          <a
-            href={provenanceUrl}
-            target="_blank"
-            rel="noreferrer"
-            title={trustLabel}
-          >
-            <span className="badgeGlyph" aria-hidden="true">{badgeGlyph}</span>
-            Trust: {trustText}
-            {badge?.provisional ? (
-              <>
-                <span className="badgeProvisional" aria-hidden="true"> ~</span>
-                <span className="muted"> (provisional)</span>
-              </>
-            ) : null}{' '}
-            <span aria-hidden="true">↗</span>
-          </a>
-        </div>
+          {badgeSvgUrl && badgeImgOk ? (
+            <img
+              className="badgeSvg"
+              src={badgeSvgUrl}
+              alt={`Trust badge for ${item.source_name}`}
+              loading="lazy"
+              onError={() => setBadgeImgOk(false)}
+            />
+          ) : (
+            <span className="badgeFallback">View provenance ↗</span>
+          )}
+        </a>
       </div>
     </article>
   )

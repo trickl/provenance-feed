@@ -90,73 +90,39 @@ body {
 }
 
 .badge {
-  /* Base style; variants provide color mapping by grade. */
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  user-select: none;
+}
+
+.badge:hover {
+  filter: brightness(0.985);
+}
+
+.badge:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.55);
+  outline-offset: 2px;
+}
+
+.badgeSvg {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.badgeFallback {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
   border: 1px solid #e5e7eb;
   background: #f3f4f6;
   color: #111827;
-  border-radius: 999px;
-  padding: 4px 8px;
   font-size: 12px;
-  white-space: nowrap;
-}
-
-.badgeGlyph {
-  margin-right: 6px;
-  font-size: 11px;
-  line-height: 1;
-  display: inline-block;
-  transform: translateY(-0.5px);
-}
-
-.badgeProvisional {
   font-weight: 700;
-}
-
-/* Provisional gets a subtle modifier (no semantic/copy change). */
-.badge--provisional {
-  border-style: dashed;
-}
-
-/* Grade mapping (roughly: A/B green, C amber, D/F red, UNKNOWN gray). */
-.badge--a_plus,
-.badge--a {
-  border-color: #86efac;
-  background: #dcfce7;
-  color: #166534;
-}
-
-.badge--b {
-  border-color: #a7f3d0;
-  background: #ecfdf5;
-  color: #065f46;
-}
-
-.badge--c {
-  border-color: #fcd34d;
-  background: #fffbeb;
-  color: #92400e;
-}
-
-.badge--d,
-.badge--f {
-  border-color: #fca5a5;
-  background: #fef2f2;
-  color: #991b1b;
-}
-
-.badge--unknown {
-  border-color: #d1d5db;
-  background: #f9fafb;
-  color: #374151;
-}
-
-.badge a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.badge a:hover {
-  text-decoration: underline;
+  white-space: nowrap;
 }
 
 .error {
